@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Shell-I-Byte/headerlens/schema/headerlens-result-v3.schema.json",
+  "title": "HeaderLens result v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "tool", "tool_version", "target", "final_url",
+    "status_code", "duration_ms", "http_version", "headers", "headers_redacted",
+    "findings", "evidence_sha256", "scanned_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "headerlens.result/v3"},
+    "tool": {"const": "HeaderLens"},
+    "tool_version": {"type": "string", "minLength": 1},
+    "target": {"type": "string", "format": "uri"},
+    "final_url": {"type": "string", "format": "uri"},
+    "status_code": {"type": "integer", "minimum": 0, "maximum": 999, "description": "Observed integer status code. HTTP-valid codes are 100-599; HeaderLens preserves Go-accepted three-digit out-of-range wire values such as 600-999 as evidence and emits a protocol warning."},
+    "duration_ms": {"type": "integer", "minimum": 0},
+    "http_version": {"type": "string"},
+    "headers": {
+      "type": "object",
+      "additionalProperties": {"type": "array", "items": {"type": "string"}}
+    },
+    "headers_redacted": {"type": "boolean"},
+    "tls": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {"type": "string"},
+        "cipher_suite": {"type": "string"},
+        "server_name": {"type": "string"},
+        "negotiated_protocol": {"type": "string"},
+        "cert_subject": {"type": "string"},
+        "cert_issuer": {"type": "string"},
+        "cert_not_before": {"type": "string", "format": "date-time"},
+        "cert_not_after": {"type": "string", "format": "date-time"},
+        "cert_dns_names": {"type": "array", "items": {"type": "string"}},
+        "cert_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "verified_chains": {"type": "integer", "minimum": 0}
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "severity", "category", "title"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "severity": {"enum": ["INFO", "PASS", "WARN", "FAIL"]},
+          "category": {"type": "string", "minLength": 1},
+          "title": {"type": "string", "minLength": 1},
+          "evidence": {"type": "string"},
+          "remediation": {"type": "string"}
+        }
+      }
+    },
+    "redirect_chain": {"type": "array", "items": {"type": "string", "format": "uri"}},
+    "redirect_blocked": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "reason"],
+      "properties": {
+        "url": {"type": "string", "format": "uri"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Normalized SHA-256 over the v3 observation profile, including redirect_blocked when present. Excludes timing, tool build version, and derived findings. Not a raw wire transcript hash."},
+    "scanned_at": {"type": "string", "format": "date-time"}
+  }
+}

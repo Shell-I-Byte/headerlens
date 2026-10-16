@@ -1,0 +1,99 @@
+{
+  "schema_version": "headerlens.result/v13",
+  "tool": "HeaderLens",
+  "tool_version": "0.1.16",
+  "target": "http://127.0.0.1:54579/",
+  "final_url": "http://127.0.0.1:54579/",
+  "status_code": 200,
+  "duration_ms": 0,
+  "http_version": "HTTP/1.1",
+  "headers": {
+    "Content-Length": [
+      "0"
+    ],
+    "Server": [
+      "test\u003c\u0026\u003e"
+    ]
+  },
+  "headers_redacted": true,
+  "http_framing": {
+    "content_length": 0,
+    "connection_close": false
+  },
+  "findings": [
+    {
+      "id": "HL-CSP-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Content-Security-Policy missing",
+      "remediation": "Define a CSP suited to the application's actual resource requirements."
+    },
+    {
+      "id": "HL-XCTO-002",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "X-Content-Type-Options missing or unexpected",
+      "remediation": "Set X-Content-Type-Options: nosniff."
+    },
+    {
+      "id": "HL-REF-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Referrer-Policy missing",
+      "remediation": "Set an explicit referrer policy appropriate for the application."
+    },
+    {
+      "id": "HL-FRAME-002",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "No clear anti-framing policy found",
+      "remediation": "Use enforced CSP frame-ancestors; X-Frame-Options can be retained for legacy defense in depth. ALLOW-FROM is obsolete and unsupported by modern browsers."
+    },
+    {
+      "id": "HL-PERM-001",
+      "severity": "INFO",
+      "category": "headers",
+      "title": "Permissions-Policy not present",
+      "remediation": "Consider restricting browser features that the application does not use."
+    },
+    {
+      "id": "HL-DISC-SERVER",
+      "severity": "INFO",
+      "category": "disclosure",
+      "title": "Server header discloses implementation detail",
+      "evidence": "test\u003c\u0026\u003e",
+      "remediation": "Remove unnecessary version/product disclosure where practical."
+    }
+  ],
+  "redirect_chain": [
+    "http://127.0.0.1:54579/"
+  ],
+  "interim_responses": [
+    {
+      "request_index": 0,
+      "url": "http://127.0.0.1:54579/",
+      "status_code": 103,
+      "headers": {
+        "Content-Security-Policy": [
+          "default-src none"
+        ],
+        "Link": [
+          "\u003c/script.js?token=CANARY\u003e; rel=preload; as=script"
+        ]
+      },
+      "headers_redacted": true,
+      "findings": [
+        {
+          "id": "HL-EARLYHINTS-001",
+          "severity": "INFO",
+          "category": "protocol",
+          "title": "Security-control header observed in 103 Early Hints",
+          "evidence": "Content-Security-Policy",
+          "remediation": "RFC 8297 treats 103 fields as hints and says they must not affect processing of the final response except for speculative/performance behavior. Evaluate the corresponding control on the final response separately."
+        }
+      ]
+    }
+  ],
+  "evidence_sha256": "bf047d8699c6597c57c40ec0c126a6ce54402a9a531c868f8ca922f2e039e44a",
+  "scanned_at": "2026-10-07T21:07:32.409215013Z"
+}

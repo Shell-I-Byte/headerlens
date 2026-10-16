@@ -1,0 +1,142 @@
+name: ci
+
+'on':
+  push:
+    branches: ['**']
+    tags: ['v1.*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.26.9', '1.27.2']
+    steps:
+      # Immutable action SHAs reduce tag-retargeting supply-chain risk.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+      - run: go test ./...
+      - run: go test -race ./...
+      - run: go test -shuffle=on -count=3 ./...
+      - run: go vet ./...
+      - run: go mod verify
+      # ./... compiles the CLI without leaving an untracked binary in source.
+      # A root binary would be correctly rejected by the subsequent source manifest test.
+      - run: go build -trimpath ./...
+      - name: Verify clean release source after build
+        run: python3 tools/verify_release_manifest.py
+      - name: Build and smoke real CLI outside the checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          go build -trimpath -buildvcs=false -o "${RUNNER_TEMP}/headerlens" ./cmd/headerlens
+          "${RUNNER_TEMP}/headerlens" -version
+          python3 tools/native_flag_security_probe.py "${RUNNER_TEMP}/headerlens"
+          python3 -B tools/acceptance_selftest.py --binary "${RUNNER_TEMP}/headerlens" --source . --out "${RUNNER_TEMP}/headerlens-acceptance" --expected-version 0.1.21-rc11
+      - name: Independent v13/v14/v15 evidence verifier vectors (Python stdlib)
+        run: python3 -m unittest discover -s tools -p "test_*.py" -v
+      - name: Current v15 golden evidence digest
+        run: python3 tools/verify_evidence_v15.py testdata/evidence/v15_auth_response.json
+      - name: Seal source and reject hidden unlisted archive files
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+          python3 tools/seal_release_source.py "$tmpdir/source.zip" HeaderLens_v0.1.21-rc11
+          python3 tools/verify_source_archive.py "$tmpdir/source.zip"
+          unzip -q "$tmpdir/source.zip" -d "$tmpdir/unpacked"
+          python3 tools/verify_release_manifest.py --sealed "$tmpdir/unpacked/HeaderLens_v0.1.21-rc11"
+
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.2'
+          cache: true
+      - run: go mod verify
+      - name: Staticcheck 2026.2
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
+      - name: Go vulnerability scan
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+
+  # Mandatory BEFORE release: every PR, branch push, v1 tag and manual run.
+  # Native execution is a separate gate from cross-compilation and Linux x64.
+  # Hosted minutes may be billable for private repositories.
+  native_smoke:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      CGO_ENABLED: '1'
+      GOTOOLCHAIN: local
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04-arm
+            expected_goos: linux
+            expected_goarch: arm64
+          - os: macos-15
+            expected_goos: darwin
+            expected_goarch: arm64
+          - os: windows-2025
+            expected_goos: windows
+            expected_goarch: amd64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: '1.27.2'
+          cache: true
+      - name: Fail closed if hosted Go platform differs from requested native runner
+        shell: bash
+        env:
+          EXPECTED_GOOS: ${{ matrix.expected_goos }}
+          EXPECTED_GOARCH: ${{ matrix.expected_goarch }}
+        run: |
+          set -euo pipefail
+          go version
+          actual_goos=$(go env GOOS)
+          actual_goarch=$(go env GOARCH)
+          echo "Go platform: ${actual_goos}/${actual_goarch}"
+          test "$actual_goos" = "$EXPECTED_GOOS"
+          test "$actual_goarch" = "$EXPECTED_GOARCH"
+      - run: go test -count=1 ./...
+      - run: go test -race -count=1 ./...
+      - run: go vet ./...
+      - run: go build ./...
+      - run: go mod verify
+      - name: Native compiled CLI positive and adversarial flag checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          binary="${RUNNER_TEMP}/headerlens"
+          if [ "${RUNNER_OS}" = "Windows" ]; then binary="${binary}.exe"; fi
+          go build -trimpath -buildvcs=false -o "$binary" ./cmd/headerlens
+          if command -v python3 >/dev/null 2>&1; then
+            python3 -B tools/native_flag_security_probe.py "$binary"
+          elif command -v python >/dev/null 2>&1; then
+            python -B tools/native_flag_security_probe.py "$binary"
+          else
+            echo 'BLOCKED: no Python interpreter for native CLI acceptance' >&2
+            exit 1
+          fi

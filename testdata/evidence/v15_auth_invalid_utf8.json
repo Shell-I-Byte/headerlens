@@ -1,0 +1,65 @@
+{
+  "schema_version": "headerlens.result/v15",
+  "tool": "HeaderLens",
+  "tool_version": "0.1.18",
+  "target": "http://127.0.0.1:34583/utf8",
+  "final_url": "http://127.0.0.1:34583/utf8",
+  "status_code": 200,
+  "duration_ms": 0,
+  "http_version": "HTTP/1.1",
+  "headers": {
+    "Authentication-Info": [
+      "\u003credacted authentication field\u003e"
+    ],
+    "Content-Length": [
+      "0"
+    ]
+  },
+  "headers_redacted": true,
+  "http_framing": {
+    "content_length": 0,
+    "connection_close": true
+  },
+  "findings": [
+    {
+      "id": "HL-CSP-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Content-Security-Policy missing",
+      "remediation": "Define a CSP suited to the application's actual resource requirements."
+    },
+    {
+      "id": "HL-XCTO-002",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "X-Content-Type-Options missing or unexpected",
+      "remediation": "Set X-Content-Type-Options: nosniff."
+    },
+    {
+      "id": "HL-REF-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Referrer-Policy missing",
+      "remediation": "Set an explicit referrer policy appropriate for the application."
+    },
+    {
+      "id": "HL-FRAME-002",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "No clear anti-framing policy found",
+      "remediation": "Use enforced CSP frame-ancestors; X-Frame-Options can be retained for legacy defense in depth. ALLOW-FROM is obsolete and unsupported by modern browsers."
+    },
+    {
+      "id": "HL-PERM-001",
+      "severity": "INFO",
+      "category": "headers",
+      "title": "Permissions-Policy not present",
+      "remediation": "Consider restricting browser features that the application does not use."
+    }
+  ],
+  "redirect_chain": [
+    "http://127.0.0.1:34583/utf8"
+  ],
+  "evidence_sha256": "40456f941803e31e95670e601643bf117e3c60f611a8e9172ceedbbf044d5ada",
+  "scanned_at": "2026-10-07T23:16:47.687658242Z"
+}

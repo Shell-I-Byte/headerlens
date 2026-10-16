@@ -1,0 +1,9 @@
+/headerlens
+/dist/
+*.test
+*.out
+.DS_Store
+
+# Python independent verifier test cache
+__pycache__/
+*.pyc

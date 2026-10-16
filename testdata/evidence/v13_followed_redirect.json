@@ -1,0 +1,197 @@
+{
+  "schema_version": "headerlens.result/v13",
+  "tool": "HeaderLens",
+  "tool_version": "0.1.16",
+  "target": "http://127.0.0.1:45487/redirect",
+  "final_url": "http://127.0.0.1:45487/final?REDACTED",
+  "status_code": 200,
+  "duration_ms": 1,
+  "http_version": "HTTP/1.1",
+  "headers": {
+    "Content-Length": [
+      "0"
+    ],
+    "Content-Security-Policy": [
+      "default-src 'self'; frame-ancestors 'none'"
+    ],
+    "Content-Type": [
+      "text/html; charset=utf-8"
+    ],
+    "Date": [
+      "Wed, 07 Oct 2026 21:07:27 GMT"
+    ],
+    "Server": [
+      "BaseHTTP/0.6 Python/3.13.5"
+    ],
+    "Set-Cookie": [
+      "__Host-session=\u003credacted\u003e; Secure; HttpOnly; SameSite=Strict; Path=\u003credacted\u003e"
+    ],
+    "Strict-Transport-Security": [
+      "max-age=31536000"
+    ],
+    "X-Special-Flag": [
+      "hello\u003c\u0026\u003elatin1-�"
+    ]
+  },
+  "header_bytes_b64": {
+    "Content-Length": [
+      "MA=="
+    ],
+    "Content-Security-Policy": [
+      "ZGVmYXVsdC1zcmMgJ3NlbGYnOyBmcmFtZS1hbmNlc3RvcnMgJ25vbmUn"
+    ],
+    "Content-Type": [
+      "dGV4dC9odG1sOyBjaGFyc2V0PXV0Zi04"
+    ],
+    "Date": [
+      "V2VkLCAwNyBPY3QgMjAyNiAyMTowNzoyNyBHTVQ="
+    ],
+    "Server": [
+      "QmFzZUhUVFAvMC42IFB5dGhvbi8zLjEzLjU="
+    ],
+    "Set-Cookie": [
+      "X19Ib3N0LXNlc3Npb249PHJlZGFjdGVkPjsgU2VjdXJlOyBIdHRwT25seTsgU2FtZVNpdGU9U3RyaWN0OyBQYXRoPTxyZWRhY3RlZD4="
+    ],
+    "Strict-Transport-Security": [
+      "bWF4LWFnZT0zMTUzNjAwMA=="
+    ],
+    "X-Special-Flag": [
+      "aGVsbG88Jj5sYXRpbjEt6Q=="
+    ]
+  },
+  "headers_redacted": true,
+  "http_framing": {
+    "content_length": 0,
+    "connection_close": false
+  },
+  "findings": [
+    {
+      "id": "HL-HSTS-005",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "HSTS sent over insecure HTTP and will be ignored",
+      "evidence": "max-age=31536000",
+      "remediation": "Serve HSTS only over HTTPS and redirect HTTP traffic to HTTPS according to deployment policy."
+    },
+    {
+      "id": "HL-XCTO-002",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "X-Content-Type-Options missing or unexpected",
+      "remediation": "Set X-Content-Type-Options: nosniff."
+    },
+    {
+      "id": "HL-REF-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Referrer-Policy missing",
+      "remediation": "Set an explicit referrer policy appropriate for the application."
+    },
+    {
+      "id": "HL-COOKIE-ORIGIN-__HOST_SESSION",
+      "severity": "WARN",
+      "category": "cookies",
+      "title": "Secure cookie set from an insecure HTTP origin",
+      "evidence": "__Host-session: Secure=true HttpOnly=true SameSite=Strict PathPresent=true PathIsRoot=true DomainPresent=false Partitioned=false",
+      "remediation": "Set Secure cookies from HTTPS. Some user agents make localhost exceptions, but do not rely on insecure origins for production cookies."
+    },
+    {
+      "id": "HL-COOKIE-PREFIX-__HOST_SESSION",
+      "severity": "WARN",
+      "category": "cookies",
+      "title": "Cookie prefix requirements are not satisfied",
+      "evidence": "__Host-session: Secure=true HttpOnly=true SameSite=Strict PathPresent=true PathIsRoot=true DomainPresent=false Partitioned=false",
+      "remediation": "Ensure __Secure-, __Host-, __Http-, and __Host-Http- cookie prefix requirements are satisfied and set prefixed cookies from HTTPS."
+    },
+    {
+      "id": "HL-CSP-002",
+      "severity": "INFO",
+      "category": "headers",
+      "title": "Content-Security-Policy present (partial analysis)",
+      "evidence": "default-src 'self'; frame-ancestors 'none'",
+      "remediation": "HeaderLens does not claim a generic CSP PASS from header presence alone. Review effective directives in browser context; avoid unsafe-inline/unsafe-eval where feasible and account for nonces/hashes/strict-dynamic."
+    },
+    {
+      "id": "HL-PERM-001",
+      "severity": "INFO",
+      "category": "headers",
+      "title": "Permissions-Policy not present",
+      "remediation": "Consider restricting browser features that the application does not use."
+    },
+    {
+      "id": "HL-DISC-SERVER",
+      "severity": "INFO",
+      "category": "disclosure",
+      "title": "Server header discloses implementation detail",
+      "evidence": "BaseHTTP/0.6 Python/3.13.5",
+      "remediation": "Remove unnecessary version/product disclosure where practical."
+    },
+    {
+      "id": "HL-FRAME-001",
+      "severity": "PASS",
+      "category": "headers",
+      "title": "Restrictive frame embedding policy present",
+      "evidence": "frame-ancestors 'none'"
+    }
+  ],
+  "redirect_chain": [
+    "http://127.0.0.1:45487/redirect",
+    "http://127.0.0.1:45487/final?REDACTED"
+  ],
+  "redirect_responses": [
+    {
+      "url": "http://127.0.0.1:45487/redirect",
+      "status_code": 302,
+      "http_version": "HTTP/1.1",
+      "headers": {
+        "Content-Length": [
+          "0"
+        ],
+        "Date": [
+          "Wed, 07 Oct 2026 21:07:27 GMT"
+        ],
+        "Location": [
+          "/final?REDACTED"
+        ],
+        "Server": [
+          "BaseHTTP/0.6 Python/3.13.5"
+        ],
+        "Set-Cookie": [
+          "session=\u003credacted\u003e; Secure; HttpOnly; SameSite=Lax; Path=\u003credacted\u003e"
+        ]
+      },
+      "headers_redacted": true,
+      "http_framing": {
+        "content_length": 0,
+        "connection_close": false
+      },
+      "findings": [
+        {
+          "id": "HL-REF-001",
+          "severity": "WARN",
+          "category": "headers",
+          "title": "Referrer-Policy missing",
+          "remediation": "Set an explicit referrer policy appropriate for the application."
+        },
+        {
+          "id": "HL-COOKIE-ORIGIN-SESSION",
+          "severity": "WARN",
+          "category": "cookies",
+          "title": "Secure cookie set from an insecure HTTP origin",
+          "evidence": "session: Secure=true HttpOnly=true SameSite=Lax PathPresent=true PathIsRoot=true DomainPresent=false Partitioned=false",
+          "remediation": "Set Secure cookies from HTTPS. Some user agents make localhost exceptions, but do not rely on insecure origins for production cookies."
+        },
+        {
+          "id": "HL-DISC-SERVER",
+          "severity": "INFO",
+          "category": "disclosure",
+          "title": "Server header discloses implementation detail",
+          "evidence": "BaseHTTP/0.6 Python/3.13.5",
+          "remediation": "Remove unnecessary version/product disclosure where practical."
+        }
+      ]
+    }
+  ],
+  "evidence_sha256": "933a69d594a3da608a212d14f065dff0e4e7d5d70c28beab039ef8093aac5904",
+  "scanned_at": "2026-10-07T21:07:27.958224305Z"
+}

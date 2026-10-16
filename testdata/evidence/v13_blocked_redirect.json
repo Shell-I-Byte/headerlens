@@ -1,0 +1,63 @@
+{
+  "schema_version": "headerlens.result/v13",
+  "tool": "HeaderLens",
+  "tool_version": "0.1.16",
+  "target": "http://127.0.0.1:45487/blocked",
+  "final_url": "http://127.0.0.1:45487/blocked",
+  "status_code": 302,
+  "duration_ms": 1,
+  "http_version": "HTTP/1.1",
+  "headers": {
+    "Content-Length": [
+      "0"
+    ],
+    "Date": [
+      "Wed, 07 Oct 2026 21:07:28 GMT"
+    ],
+    "Location": [
+      "https://different.invalid/path?REDACTED"
+    ],
+    "Server": [
+      "BaseHTTP/0.6 Python/3.13.5"
+    ]
+  },
+  "headers_redacted": true,
+  "http_framing": {
+    "content_length": 0,
+    "connection_close": false
+  },
+  "findings": [
+    {
+      "id": "HL-REF-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Referrer-Policy missing",
+      "remediation": "Set an explicit referrer policy appropriate for the application."
+    },
+    {
+      "id": "HL-DISC-SERVER",
+      "severity": "INFO",
+      "category": "disclosure",
+      "title": "Server header discloses implementation detail",
+      "evidence": "BaseHTTP/0.6 Python/3.13.5",
+      "remediation": "Remove unnecessary version/product disclosure where practical."
+    },
+    {
+      "id": "HL-REDIRECT-001",
+      "severity": "INFO",
+      "category": "scope",
+      "title": "Redirect not followed by safe redirect policy",
+      "evidence": "https://different.invalid/path?REDACTED (cross-host redirect blocked by default)",
+      "remediation": "Review the redirect manually. Only relax redirect safety when the destination is explicitly authorized."
+    }
+  ],
+  "redirect_chain": [
+    "http://127.0.0.1:45487/blocked"
+  ],
+  "redirect_blocked": {
+    "url": "https://different.invalid/path?REDACTED",
+    "reason": "cross-host redirect blocked by default"
+  },
+  "evidence_sha256": "79b52dad98c436471a8806f06c47e40e1471e5be16d36bc76a2b8bbe47c07453",
+  "scanned_at": "2026-10-07T21:07:28.998915027Z"
+}

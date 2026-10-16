@@ -1,0 +1,651 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Shell-I-Byte/headerlens/schema/headerlens-result-v15.schema.json",
+  "title": "HeaderLens result v15",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool",
+    "tool_version",
+    "target",
+    "final_url",
+    "status_code",
+    "duration_ms",
+    "http_version",
+    "headers",
+    "headers_redacted",
+    "findings",
+    "evidence_sha256",
+    "scanned_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "headerlens.result/v15"
+    },
+    "tool": {
+      "const": "HeaderLens"
+    },
+    "tool_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "type": "string",
+      "format": "uri"
+    },
+    "final_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "status_code": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999,
+      "description": "Observed integer status code. HTTP-valid codes are 100-599; HeaderLens preserves Go-accepted three-digit out-of-range wire values such as 600-999 as evidence and emits a protocol warning."
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "http_version": {
+      "type": "string"
+    },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Response headers after default privacy normalization. In redacted mode, Set-Cookie payloads and server-navigation URL payloads in Location/Refresh are not preserved verbatim."
+    },
+    "header_bytes_b64": {
+      "type": "object",
+      "description": "Optional byte-preserving mirror of every post-redaction response-header value when at least one captured value is not valid UTF-8. Keys and array order mirror headers; each item is standard Base64. The byte mirror is created only after the same privacy normalization used by headers, so it cannot bypass Set-Cookie, Location, or Refresh redaction.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+        }
+      }
+    },
+    "headers_redacted": {
+      "type": "boolean",
+      "description": "True when sensitive response-header normalization is active. v8 privacy-normalizes Set-Cookie plus server-navigation URL payloads in Location and Refresh by default."
+    },
+    "tls": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cipher_suite": {
+          "type": "string"
+        },
+        "server_name": {
+          "type": "string"
+        },
+        "negotiated_protocol": {
+          "type": "string"
+        },
+        "cert_subject": {
+          "type": "string"
+        },
+        "cert_issuer": {
+          "type": "string"
+        },
+        "cert_not_before": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "cert_not_after": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "cert_dns_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cert_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "verified_chains": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "category",
+          "title"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": [
+              "INFO",
+              "PASS",
+              "WARN",
+              "FAIL"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "remediation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "redirect_chain": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "redirect_blocked": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "reason"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Local redirect-policy explanation for operator context. This is derived policy interpretation and is excluded from evidence_sha256 in v14; the blocked URL remains hash-bound."
+        }
+      }
+    },
+    "evidence_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Normalized SHA-256 over the v14 observation profile, including post-redaction final headers, request-indexed non-terminal informational 1xx observations, followed redirect-response observations, the blocked redirect URL (but not its local policy reason), structured TLS verification state when present, and parsed HTTP framing/trailer-name state. Excludes timing, tool build version, redirect-policy explanation text, and all derived findings. Not a raw wire transcript hash."
+    },
+    "scanned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tls_verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verified"
+      ],
+      "properties": {
+        "verified": {
+          "type": "boolean",
+          "description": "True when normal TLS certificate verification succeeded for the observed HTTPS connection."
+        },
+        "error_kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable verification-failure category when verified is false."
+        }
+      },
+      "description": "Direct, evidence-hash-bound certificate verification state for HTTPS. Omitted for plaintext HTTP.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "verified": {
+                "const": false
+              }
+            },
+            "required": [
+              "verified"
+            ]
+          },
+          "then": {
+            "required": [
+              "error_kind"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verified": {
+                "const": true
+              }
+            },
+            "required": [
+              "verified"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "error_kind"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "http_framing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_length",
+        "connection_close"
+      ],
+      "properties": {
+        "content_length": {
+          "type": "integer",
+          "description": "net/http parsed ContentLength for the final response. -1 means unknown. Raw Content-Length field values, when retained by Go, remain in headers."
+        },
+        "transfer_encoding": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Transfer codings consumed into net/http Response.TransferEncoding. This is direct parser-state evidence because hop-by-hop Transfer-Encoding may no longer be present in headers."
+        },
+        "connection_close": {
+          "type": "boolean",
+          "description": "net/http parsed response Close state."
+        },
+        "trailer_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "description": "Trailer field names exposed by net/http before body consumption (typically announced trailer names). Values are intentionally not consumed because HeaderLens does not read arbitrary response bodies."
+        }
+      },
+      "description": "Evidence-hash-bound HTTP message-framing state exposed by Go after response parsing, including parser-visible trailer field names."
+    },
+    "redirect_responses": {
+      "type": "array",
+      "description": "Responses that caused redirects which HeaderLens actually followed, oldest first. These observations preserve security-relevant intermediate headers such as HSTS and Set-Cookie rather than losing them when net/http returns the final response. Derived findings are not part of evidence_sha256.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url",
+          "status_code",
+          "http_version",
+          "headers",
+          "headers_redacted",
+          "http_framing",
+          "findings"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status_code": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 999,
+            "description": "Observed integer status code. HTTP-valid codes are 100-599; HeaderLens preserves Go-accepted three-digit out-of-range wire values such as 600-999 as evidence and emits a protocol warning."
+          },
+          "http_version": {
+            "type": "string"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Response headers after default privacy normalization. In redacted mode, Set-Cookie payloads and server-navigation URL payloads in Location/Refresh are not preserved verbatim."
+          },
+          "header_bytes_b64": {
+            "type": "object",
+            "description": "Optional byte-preserving mirror of every post-redaction response-header value when at least one captured value is not valid UTF-8. Keys and array order mirror headers; each item is standard Base64. The byte mirror is created only after the same privacy normalization used by headers, so it cannot bypass Set-Cookie, Location, or Refresh redaction.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+              }
+            }
+          },
+          "headers_redacted": {
+            "type": "boolean",
+            "description": "True when sensitive response-header normalization is active. v8 privacy-normalizes Set-Cookie plus server-navigation URL payloads in Location and Refresh by default."
+          },
+          "tls": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "cipher_suite": {
+                "type": "string"
+              },
+              "server_name": {
+                "type": "string"
+              },
+              "negotiated_protocol": {
+                "type": "string"
+              },
+              "cert_subject": {
+                "type": "string"
+              },
+              "cert_issuer": {
+                "type": "string"
+              },
+              "cert_not_before": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "cert_not_after": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "cert_dns_names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cert_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "verified_chains": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "tls_verification": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "verified"
+            ],
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "True when normal TLS certificate verification succeeded for the observed HTTPS connection."
+              },
+              "error_kind": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Stable verification-failure category when verified is false."
+              }
+            },
+            "description": "Direct, evidence-hash-bound certificate verification state for HTTPS. Omitted for plaintext HTTP.",
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "verified": {
+                      "const": false
+                    }
+                  },
+                  "required": [
+                    "verified"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "error_kind"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "verified": {
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "verified"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "error_kind"
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "http_framing": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "content_length",
+              "connection_close"
+            ],
+            "properties": {
+              "content_length": {
+                "type": "integer",
+                "description": "net/http parsed ContentLength for the final response. -1 means unknown. Raw Content-Length field values, when retained by Go, remain in headers."
+              },
+              "transfer_encoding": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "Transfer codings consumed into net/http Response.TransferEncoding. This is direct parser-state evidence because hop-by-hop Transfer-Encoding may no longer be present in headers."
+              },
+              "connection_close": {
+                "type": "boolean",
+                "description": "net/http parsed response Close state."
+              },
+              "trailer_names": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true,
+                "description": "Trailer field names exposed by net/http before body consumption (typically announced trailer names). Values are intentionally not consumed because HeaderLens does not read arbitrary response bodies."
+              }
+            },
+            "description": "Evidence-hash-bound HTTP message-framing state exposed by Go after response parsing, including parser-visible trailer field names."
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "severity",
+                "category",
+                "title"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "severity": {
+                  "enum": [
+                    "INFO",
+                    "PASS",
+                    "WARN",
+                    "FAIL"
+                  ]
+                },
+                "category": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "string"
+                },
+                "remediation": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "interim_responses": {
+      "type": "array",
+      "description": "Ordered non-terminal 1xx responses surfaced by net/http/httptrace before a final response. request_index binds each informational response to the concrete outbound request occurrence that received it, even when redirect loops revisit the same URL. Request URL, request_index, and privacy-normalized headers are direct, evidence-hash-bound observations. 103 Early Hints are hints only and do not replace final-response headers.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_index",
+          "url",
+          "status_code",
+          "headers",
+          "headers_redacted",
+          "findings"
+        ],
+        "properties": {
+          "request_index": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Zero-based outbound request occurrence within this Analyze call. The initial request is 0; each actually attempted redirect request increments the index. Bound into evidence_sha256 to prevent ambiguity when the same URL is revisited."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "status_code": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 199,
+            "description": "Non-terminal informational status observed before the final response. Go treats 101 Switching Protocols as terminal, so 101 normally appears as the final status rather than here."
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Informational response headers after the same default privacy normalization used for final and redirect responses. RFC 8297 Early Hints are direct observations/hints and are not interpreted as final-response security policy."
+          },
+          "header_bytes_b64": {
+            "type": "object",
+            "description": "Optional byte-preserving mirror of every post-redaction informational-response header value when at least one captured value is not valid UTF-8.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+              }
+            }
+          },
+          "headers_redacted": {
+            "type": "boolean",
+            "description": "True when Set-Cookie and server-navigation URL privacy normalization is active for this informational response."
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "severity",
+                "category",
+                "title"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "severity": {
+                  "enum": [
+                    "INFO",
+                    "PASS",
+                    "WARN",
+                    "FAIL"
+                  ]
+                },
+                "category": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "string"
+                },
+                "remediation": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Derived findings for this informational response. Excluded from evidence_sha256."
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status_code": {
+            "minimum": 100
+          }
+        },
+        "required": [
+          "status_code"
+        ]
+      },
+      "then": {
+        "required": [
+          "http_framing"
+        ]
+      }
+    }
+  ]
+}

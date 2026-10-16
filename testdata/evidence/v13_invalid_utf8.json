@@ -1,0 +1,73 @@
+{
+  "schema_version": "headerlens.result/v13",
+  "tool": "HeaderLens",
+  "tool_version": "0.1.16",
+  "target": "http://127.0.0.1:42511/",
+  "final_url": "http://127.0.0.1:42511/",
+  "status_code": 200,
+  "duration_ms": 1,
+  "http_version": "HTTP/1.1",
+  "headers": {
+    "Content-Length": [
+      "0"
+    ],
+    "X-Invalid": [
+      "example�\u003cok"
+    ]
+  },
+  "header_bytes_b64": {
+    "Content-Length": [
+      "MA=="
+    ],
+    "X-Invalid": [
+      "ZXhhbXBsZf88b2s="
+    ]
+  },
+  "headers_redacted": true,
+  "http_framing": {
+    "content_length": 0,
+    "connection_close": false
+  },
+  "findings": [
+    {
+      "id": "HL-CSP-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Content-Security-Policy missing",
+      "remediation": "Define a CSP suited to the application's actual resource requirements."
+    },
+    {
+      "id": "HL-XCTO-002",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "X-Content-Type-Options missing or unexpected",
+      "remediation": "Set X-Content-Type-Options: nosniff."
+    },
+    {
+      "id": "HL-REF-001",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "Referrer-Policy missing",
+      "remediation": "Set an explicit referrer policy appropriate for the application."
+    },
+    {
+      "id": "HL-FRAME-002",
+      "severity": "WARN",
+      "category": "headers",
+      "title": "No clear anti-framing policy found",
+      "remediation": "Use enforced CSP frame-ancestors; X-Frame-Options can be retained for legacy defense in depth. ALLOW-FROM is obsolete and unsupported by modern browsers."
+    },
+    {
+      "id": "HL-PERM-001",
+      "severity": "INFO",
+      "category": "headers",
+      "title": "Permissions-Policy not present",
+      "remediation": "Consider restricting browser features that the application does not use."
+    }
+  ],
+  "redirect_chain": [
+    "http://127.0.0.1:42511/"
+  ],
+  "evidence_sha256": "62ce58b3f93979b23176d69f1bcdfd6d1a90b5a4b38d50d85beeae1d74a4b08f",
+  "scanned_at": "2026-10-07T21:07:33.484568911Z"
+}

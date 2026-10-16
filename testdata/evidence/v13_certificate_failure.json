@@ -1,0 +1,42 @@
+{
+  "schema_version": "headerlens.result/v13",
+  "tool": "HeaderLens",
+  "tool_version": "0.1.16",
+  "target": "https://127.0.0.1:36211/",
+  "final_url": "https://127.0.0.1:36211/",
+  "status_code": 0,
+  "duration_ms": 18,
+  "http_version": "",
+  "headers": {},
+  "headers_redacted": true,
+  "tls": {
+    "cert_subject": "CN=localhost",
+    "cert_issuer": "CN=localhost",
+    "cert_not_before": "2026-10-07T21:06:56Z",
+    "cert_not_after": "2026-10-08T21:06:56Z",
+    "cert_dns_names": [
+      "localhost",
+      "other.example"
+    ],
+    "cert_sha256": "e42598c0832af78d6c4195d90dcfaa2b58d9434812b55533eb31e892e6020ee6"
+  },
+  "tls_verification": {
+    "verified": false,
+    "error_kind": "hostname_mismatch"
+  },
+  "findings": [
+    {
+      "id": "HL-CERT-005",
+      "severity": "FAIL",
+      "category": "tls",
+      "title": "TLS certificate verification failed",
+      "evidence": "x509: cannot validate certificate for 127.0.0.1 because it doesn't contain any IP SANs",
+      "remediation": "Correct the certificate chain, validity period, and hostname coverage. HeaderLens does not bypass certificate verification."
+    }
+  ],
+  "redirect_chain": [
+    "https://127.0.0.1:36211/"
+  ],
+  "evidence_sha256": "e60d99c9db8903fb181982d6b2667b8c22b3995d7b8f255deea07b152c5b5784",
+  "scanned_at": "2026-10-07T21:06:57.296305462Z"
+}

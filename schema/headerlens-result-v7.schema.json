@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Shell-I-Byte/headerlens/schema/headerlens-result-v7.schema.json",
+  "title": "HeaderLens result v7",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "tool",
+    "tool_version",
+    "target",
+    "final_url",
+    "status_code",
+    "duration_ms",
+    "http_version",
+    "headers",
+    "headers_redacted",
+    "findings",
+    "evidence_sha256",
+    "scanned_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "headerlens.result/v7"
+    },
+    "tool": {
+      "const": "HeaderLens"
+    },
+    "tool_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "type": "string",
+      "format": "uri"
+    },
+    "final_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "status_code": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 999,
+      "description": "Observed integer status code. HTTP-valid codes are 100-599; HeaderLens preserves Go-accepted three-digit out-of-range wire values such as 600-999 as evidence and emits a protocol warning."
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "http_version": {
+      "type": "string"
+    },
+    "headers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Response headers after default privacy normalization. In redacted mode, Set-Cookie values/attribute payloads and Location URL userinfo are not preserved verbatim."
+    },
+    "header_bytes_b64": {
+      "type": "object",
+      "description": "Optional byte-preserving mirror of every post-redaction response-header value when at least one captured value is not valid UTF-8. Keys and array order mirror headers; each item is standard Base64. v6 preserves bytes only after the same privacy normalization used by headers, so this field cannot bypass Set-Cookie or Location-userinfo redaction.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+        }
+      }
+    },
+    "headers_redacted": {
+      "type": "boolean",
+      "description": "True when sensitive response-header normalization is active. v6 carries forward v5 redaction: Set-Cookie values/attribute payloads and Location userinfo by default."
+    },
+    "tls": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cipher_suite": {
+          "type": "string"
+        },
+        "server_name": {
+          "type": "string"
+        },
+        "negotiated_protocol": {
+          "type": "string"
+        },
+        "cert_subject": {
+          "type": "string"
+        },
+        "cert_issuer": {
+          "type": "string"
+        },
+        "cert_not_before": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "cert_not_after": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "cert_dns_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cert_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "verified_chains": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "severity",
+          "category",
+          "title"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": [
+              "INFO",
+              "PASS",
+              "WARN",
+              "FAIL"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "remediation": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "redirect_chain": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "redirect_blocked": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "reason"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Normalized SHA-256 over the v6 observation profile, including post-redaction header bytes, redirect_blocked, and structured TLS verification state when present. Excludes timing, tool build version, and derived findings. Not a raw wire transcript hash."
+    },
+    "scanned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tls_verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verified"
+      ],
+      "properties": {
+        "verified": {
+          "type": "boolean",
+          "description": "True when normal TLS certificate verification succeeded for the observed HTTPS connection."
+        },
+        "error_kind": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable verification-failure category when verified is false."
+        }
+      },
+      "description": "Direct, evidence-hash-bound certificate verification state for HTTPS. Omitted for plaintext HTTP.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "verified": {
+                "const": false
+              }
+            },
+            "required": [
+              "verified"
+            ]
+          },
+          "then": {
+            "required": [
+              "error_kind"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verified": {
+                "const": true
+              }
+            },
+            "required": [
+              "verified"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "error_kind"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}
